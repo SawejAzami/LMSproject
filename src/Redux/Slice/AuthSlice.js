@@ -29,7 +29,7 @@ export const login = createAsyncThunk("/auth/login", async (data) => {
   try {
     const res = axiosInstance.post("/user/login", data);
     toast.promise(res, {
-      loading: "Wait! authentication in process",
+      loading: "Wait! authentication in progress...",
       success: (data) => {
         return data?.data?.message;
       },
@@ -38,6 +38,38 @@ export const login = createAsyncThunk("/auth/login", async (data) => {
     return (await res).data;
   } catch (error) {
     toast.error(error?.response?.data?.message);
+  }
+});
+
+// export const logout=createAsyncThunk("/auth/logout",async()=>{
+//   try {
+//     const resPromise = axiosInstance.post("/user/logout");
+//     toast.promise(resPromise, {
+//       loading: "Wait! logout in progress...",
+//       success: (res) => res.data?.message || "Logout successful",
+//       error: (err) => err.response?.data?.message || "Failed to logout",
+//     });
+//     return (await res).data;
+    
+//   } catch (error) {
+//     toast.error(error?.response?.data?.message);
+//   }
+// })
+export const logout = createAsyncThunk("/auth/logout", async () => {
+  try {
+    const resPromise = axiosInstance.get("/user/logout");
+
+    toast.promise(resPromise, {
+      loading: "Wait! logout in progress...",
+      success: (res) => res.data?.message || "Logout successful",
+      error: (err) => err.response?.data?.message || "Failed to logout",
+    });
+
+    const res = await resPromise;
+    return res.data;
+  } catch (error) {
+    toast.error(error?.response?.data?.message || "Something went wrong");
+    throw error;
   }
 });
 
@@ -53,6 +85,12 @@ const authSlice=createSlice({
         state.isLoggedIn=true;
         state.data=action?.payload?.user;
         state.role=action?.payload?.user?.role
+      })
+      .addCase(logout.fulfilled,(state)=>{
+        localStorage.clear();
+        state.data={};
+        state.isLoggedIn=false;
+        state.role=""
 
       })
     }
